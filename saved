@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arkari Studio — Kami Merancang Dunia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0B0D12;
+    --ink-soft:#181B22;
+    --paper:#F5F6F7;
+    --paper-dim:#ECEDEF;
+    --paper-card:#FFFFFF;
+    --blue:#1C3FE0;
+    --blue-deep:#0E2170;
+    --blue-soft:#E7ECFC;
+    --shard-pink:#F3A9C4;
+    --sky:#BEE3EE;
+    --line: rgba(11,13,18,0.10);
+    --text:#12141A;
+    --text-dim:#5B5F6B;
+    --radius:2px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    font-family:'Inter', sans-serif;
+    background:var(--paper);
+    color:var(--text);
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,h4{font-family:'Space Grotesk', sans-serif; font-weight:600; letter-spacing:-0.01em;}
+  .mono{font-family:'IBM Plex Mono', monospace; font-weight:400;}
+  a{color:inherit; text-decoration:none;}
+  img{max-width:100%; display:block;}
+  ::selection{background:var(--blue); color:#fff;}
+
+  /* ---------- LAYOUT ---------- */
+  .app{display:flex; min-height:100vh;}
+
+  /* ---------- SIDEBAR ---------- */
+  .sidebar{
+    width:230px; flex-shrink:0;
+    background:var(--ink);
+    color:#EDEEF2;
+    display:flex; flex-direction:column;
+    padding:28px 22px;
+    position:sticky; top:0; height:100vh;
+    transition:width .35s cubic-bezier(.65,0,.35,1), padding .35s cubic-bezier(.65,0,.35,1);
+    overflow:hidden;
+    z-index:100;
+  }
+  .sidebar.collapsed{width:76px; padding:28px 14px;}
+  .side-top{display:flex; align-items:center; justify-content:space-between; margin-bottom:44px;}
+  .brand{display:flex; align-items:center; gap:10px; white-space:nowrap;}
+  .brand-mark{
+    width:20px; height:20px; flex-shrink:0;
+    background:var(--blue);
+    clip-path:polygon(50% 0%, 100% 100%, 0% 100%);
+  }
+  .brand-name{font-family:'Space Grotesk'; font-weight:700; font-size:17px; letter-spacing:0.01em; color:#fff;}
+  .sidebar.collapsed .brand-name{display:none;}
+
+  .toggle-btn{
+    background:none; border:1px solid rgba(255,255,255,0.16); color:#cfd2da;
+    width:26px; height:26px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer; flex-shrink:0; transition:background .2s, transform .35s;
+  }
+  .toggle-btn:hover{background:rgba(255,255,255,0.08);}
+  .sidebar.collapsed .toggle-btn{transform:rotate(180deg);}
+  .toggle-btn svg{width:12px; height:12px;}
+
+  .side-label{
+    font-family:'IBM Plex Mono'; font-size:10px; letter-spacing:0.14em; text-transform:uppercase;
+    color:#6B7080; margin-bottom:14px; white-space:nowrap;
+  }
+  .sidebar.collapsed .side-label{opacity:0;}
+
+  .nav-list{list-style:none; display:flex; flex-direction:column; gap:2px; margin-bottom:auto;}
+  .nav-list a{
+    display:flex; align-items:center; gap:12px;
+    padding:11px 10px; border-radius:6px; font-size:13.5px; font-weight:500;
+    color:#B9BCC6; white-space:nowrap; transition:background .2s, color .2s;
+    position:relative;
+  }
+  .nav-list a:hover{background:rgba(255,255,255,0.06); color:#fff;}
+  .nav-list a.active{color:#fff; background:rgba(28,63,224,0.18);}
+  .nav-list a.active::before{
+    content:""; position:absolute; left:-22px; top:0; bottom:0; width:3px; background:var(--blue);
+  }
+  .sidebar.collapsed .nav-list a.active::before{left:-14px;}
+  .nav-dot{width:6px; height:6px; border-radius:50%; background:currentColor; flex-shrink:0; opacity:.55;}
+  .nav-list a.active .nav-dot{opacity:1; background:var(--blue);}
+  .sidebar.collapsed .nav-text{display:none;}
+
+  .side-bottom{margin-top:24px; padding-top:20px; border-top:1px solid rgba(255,255,255,0.1);}
+  .lang-row{display:flex; gap:10px; font-family:'IBM Plex Mono'; font-size:11px; color:#8B8F9B; margin-bottom:16px; white-space:nowrap;}
+  .lang-row span.on{color:#fff;}
+  .sidebar.collapsed .lang-row{opacity:0;}
+  .social-row{display:flex; gap:10px; white-space:nowrap;}
+  .social-row a{
+    width:26px; height:26px; border-radius:50%; border:1px solid rgba(255,255,255,0.16);
+    display:flex; align-items:center; justify-content:center; color:#B9BCC6; flex-shrink:0;
+  }
+  .social-row a:hover{border-color:var(--blue); color:#fff;}
+  .social-row a svg{width:12px; height:12px;}
+  .sidebar.collapsed .social-row a:nth-child(n+3){display:none;}
+
+  /* mobile topbar */
+  .mobile-bar{display:none;}
+
+  /* ---------- MAIN ---------- */
+  main{flex:1; min-width:0;}
+
+  .section{padding:96px 64px;}
+  .eyebrow{
+    font-family:'IBM Plex Mono'; font-size:11px; letter-spacing:0.16em; text-transform:uppercase;
+    color:var(--blue); margin-bottom:14px; display:flex; align-items:center; gap:8px;
+  }
+  .eyebrow::before{content:""; width:14px; height:1px; background:var(--blue);}
+
+  /* ---------- HERO ---------- */
+  .hero{
+    position:relative;
+    padding:64px 64px 0;
+    overflow:hidden;
+    background:linear-gradient(180deg, var(--paper) 0%, var(--paper-dim) 100%);
+  }
+  .hero-inner{
+    position:relative; z-index:3;
+    max-width:520px;
+  }
+  .hero-eyebrow{font-family:'IBM Plex Mono'; font-size:11px; letter-spacing:0.16em; text-transform:uppercase; color:var(--blue-deep); margin-bottom:18px;}
+  .hero h1{
+    font-size:44px; line-height:1.12; letter-spacing:-0.02em; color:var(--ink); margin-bottom:22px;
+  }
+  .hero h1 em{font-style:normal; color:var(--blue);}
+  .hero p.lead{font-size:15.5px; line-height:1.7; color:var(--text-dim); max-width:420px; margin-bottom:32px;}
+  .hero-cta{display:flex; gap:14px; align-items:center; margin-bottom:64px;}
+  .btn{
+    display:inline-flex; align-items:center; gap:8px;
+    padding:13px 22px; font-size:13px; font-weight:600; font-family:'Inter';
+    border-radius:3px; cursor:pointer; border:1px solid transparent; transition:all .2s;
+  }
+  .btn-primary{background:var(--ink); color:#fff;}
+  .btn-primary:hover{background:var(--blue-deep);}
+  .btn-outline{border-color:var(--line); color:var(--ink); background:transparent;}
+  .btn-outline:hover{border-color:var(--ink);}
+  .btn svg{width:13px; height:13px; transition:transform .2s;}
+  .btn:hover svg{transform:translateX(3px);}
+
+  .hero-visual{
+    position:absolute; top:0; right:0; bottom:0; width:56%;
+    z-index:1;
+  }
+  .shard-sky{
+    position:absolute; top:0; right:-6%; width:105%; height:88%;
+    background:linear-gradient(160deg, #DDEEF3 0%, var(--sky) 55%, #8FB9D6 100%);
+    clip-path:polygon(38% 0%, 100% 22%, 100% 100%, 0% 100%);
+    opacity:.9;
+  }
+  .shard-mountain{
+    position:absolute; bottom:6%; right:8%; width:40%; height:52%;
+    background:linear-gradient(200deg, var(--blue) 0%, var(--blue-deep) 100%);
+    clip-path:polygon(50% 0%, 100% 100%, 0% 100%);
+  }
+  .shard-mountain::after{
+    content:""; position:absolute; left:0; top:38%; width:100%; height:62%;
+    background:rgba(255,255,255,0.14);
+    clip-path:polygon(30% 0%, 100% 42%, 100% 100%, 0% 100%);
+  }
+  .shard-crystal{
+    position:absolute; top:8%; left:12%; width:130px; height:150px;
+    background:linear-gradient(135deg, var(--shard-pink) 0%, #E37FB0 100%);
+    clip-path:polygon(50% 0%, 100% 38%, 78% 100%, 22% 100%, 0% 38%);
+    box-shadow:0 30px 60px -20px rgba(28,63,224,0.35);
+  }
+  .shard-crystal::before{
+    content:""; position:absolute; left:0; top:0; width:50%; height:100%;
+    background:rgba(255,255,255,0.22);
+    clip-path:polygon(50% 0%, 100% 38%, 78% 100%, 22% 100%, 0% 38%);
+  }
+  .shard-diamond{
+    position:absolute; bottom:14%; right:2%; width:70px; height:70px;
+    background:linear-gradient(135deg, var(--blue-deep), var(--blue));
+    transform:rotate(45deg);
+    box-shadow:0 20px 40px -10px rgba(14,33,112,0.4);
+  }
+  .shard-line{
+    position:absolute; top:20%; right:20%; width:2px; height:38%;
+    background:var(--ink);
+    opacity:.55;
+  }
+  .shard-line::before, .shard-line::after{
+    content:""; position:absolute; left:50%; width:60px; height:2px; background:var(--ink); opacity:.55;
+  }
+  .shard-line::before{top:0; transform:translate(-8%, -50%) rotate(28deg);}
+  .shard-line::after{bottom:0; transform:translate(-8%, 50%) rotate(-18deg);}
+
+  .hero-card{
+    position:relative; z-index:3;
+    background:rgba(255,255,255,0.88);
+    backdrop-filter:blur(6px);
+    border:1px solid rgba(255,255,255,0.7);
+    border-left:3px solid var(--blue);
+    padding:26px 28px;
+    max-width:340px;
+    margin-top:-10px;
+    box-shadow:0 30px 60px -30px rgba(11,13,18,0.25);
+  }
+  .hero-card .tag{font-family:'IBM Plex Mono'; font-size:10px; letter-spacing:0.14em; color:var(--blue); margin-bottom:10px;}
+  .hero-card h3{font-size:22px; margin-bottom:10px; color:var(--ink);}
+  .hero-card p{font-size:12.5px; line-height:1.65; color:var(--text-dim); margin-bottom:18px;}
+  .hero-card .btn{padding:10px 16px; font-size:11.5px;}
+
+  .hero-bottom{
+    position:relative; z-index:3;
+    max-width:1100px; margin:0 auto;
+    display:flex; justify-content:space-between; align-items:center;
+    padding:40px 0 28px;
+    border-top:1px solid var(--line);
+  }
+  .scroll-hint{font-family:'IBM Plex Mono'; font-size:10px; letter-spacing:0.16em; color:var(--text-dim); display:flex; align-items:center; gap:10px;}
+  .scroll-hint .dash{width:26px; height:1px; background:var(--text-dim);}
+  .stat-mini{display:flex; gap:36px;}
+  .stat-mini div{font-family:'IBM Plex Mono'; font-size:11px; color:var(--text-dim);}
+  .stat-mini strong{display:block; font-family:'Space Grotesk'; font-size:18px; color:var(--ink); font-weight:600;}
+
+  /* ---------- SECTION HEADER ---------- */
+  .sec-head{display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:44px; flex-wrap:wrap; gap:16px;}
+  .sec-head h2{font-size:32px; color:var(--ink);}
+  .view-all{font-family:'IBM Plex Mono'; font-size:11.5px; letter-spacing:0.06em; color:var(--blue); display:flex; align-items:center; gap:6px;}
+  .view-all svg{width:12px; height:12px;}
+
+  /* ---------- GALLERY ---------- */
+  .gallery{background:var(--paper-dim);}
+  .gallery-grid{
+    display:grid; grid-template-columns:1.3fr 1fr; grid-template-rows:auto auto; gap:18px;
+    max-width:1180px;
+  }
+  .g-card{
+    position:relative; overflow:hidden; border-radius:2px;
+    background:var(--ink); color:#fff; min-height:280px;
+    display:flex; flex-direction:column; justify-content:flex-end;
+    padding:26px;
+  }
+  .g-card.large{grid-row:span 2;}
+  .g-card .g-bg{position:absolute; inset:0; z-index:0;}
+  .g-card .g-content{position:relative; z-index:2;}
+  .g-card .g-tag{font-family:'IBM Plex Mono'; font-size:10px; letter-spacing:0.1em; opacity:.75; margin-bottom:8px;}
+  .g-card h4{font-size:19px; margin-bottom:6px;}
+  .g-card p{font-size:12px; line-height:1.6; opacity:.8; max-width:280px;}
+  .g-card::before{content:""; position:absolute; inset:0; z-index:1; background:linear-gradient(180deg, rgba(11,13,18,0) 20%, rgba(11,13,18,0.85) 100%);}
+
+  .g1 .g-bg{background:linear-gradient(160deg,#1F7A5C 0%, #0B3B2C 55%, #071F19 100%);}
+  .g1 .g-bg::after{content:""; position:absolute; left:10%; top:8%; width:60%; height:70%; background:linear-gradient(180deg, rgba(200,240,220,0.15), transparent); clip-path:polygon(30% 0, 70% 0, 100% 100%, 0 100%);}
+  .g2{background:var(--paper-card); color:var(--ink); border:1px solid var(--line); justify-content:space-between;}
+  .g2::before{display:none;}
+  .g2 .g-tag{color:var(--blue); opacity:1;}
+  .g2 p{color:var(--text-dim); opacity:1;}
+  .g2 .g-top{display:flex; justify-content:space-between; align-items:flex-start;}
+  .g2 .g-top .dot{width:8px; height:8px; border-radius:50%; background:var(--blue);}
+  .g3 .g-bg{background:linear-gradient(150deg,#26314F 0%, #0B0D12 70%);}
+  .g3 .g-bg::after{content:""; position:absolute; right:8%; top:15%; width:40%; height:40%; background:linear-gradient(135deg, var(--shard-pink), var(--blue)); clip-path:polygon(50% 0%,100% 38%,78% 100%,22% 100%,0% 38%); opacity:.5;}
+  .g4{background:var(--blue); color:#fff; justify-content:center; align-items:center; text-align:center;}
+  .g4::before{display:none;}
+  .g4 .big-stat{font-family:'Space Grotesk'; font-size:46px; font-weight:700; line-height:1;}
+  .g4 .stat-label{font-family:'IBM Plex Mono'; font-size:11px; letter-spacing:0.14em; margin-top:10px; opacity:.85;}
+
+  /* ---------- SERVICES ---------- */
+  .services-grid{
+    display:grid; grid-template-columns:repeat(3, 1fr); gap:1px;
+    background:var(--line); border:1px solid var(--line); max-width:1180px;
+  }
+  .service-card{background:var(--paper); padding:34px 28px;}
+  .service-card .svc-tag{font-family:'IBM Plex Mono'; font-size:11px; color:var(--blue); margin-bottom:18px;}
+  .service-card h3{font-size:18px; margin-bottom:10px; color:var(--ink);}
+  .service-card p{font-size:13px; line-height:1.7; color:var(--text-dim);}
+
+  /* ---------- WHY CHOOSE US ---------- */
+  .why{background:var(--ink); color:#EDEEF2;}
+  .why .eyebrow{color:#8FA5F5;}
+  .why .eyebrow::before{background:#8FA5F5;}
+  .why .sec-head h2{color:#fff;}
+  .why-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:22px; max-width:1180px;}
+  .why-card{
+    background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1);
+    padding:32px 26px; position:relative; overflow:hidden;
+  }
+  .why-card::before{
+    content:""; position:absolute; top:-30px; right:-30px; width:90px; height:90px;
+    background:var(--blue); opacity:.15; clip-path:polygon(50% 0%,100% 100%,0% 100%);
+  }
+  .why-card .why-mark{width:34px; height:34px; margin-bottom:22px; position:relative;}
+  .why-card .why-mark .m1{position:absolute; inset:0; background:var(--blue); clip-path:polygon(50% 0%,100% 100%,0% 100%);}
+  .why-card h3{font-size:17px; margin-bottom:12px; color:#fff;}
+  .why-card p{font-size:13px; line-height:1.7; color:#A6AAB5;}
+
+  /* ---------- CONTACT ---------- */
+  .contact-grid{display:grid; grid-template-columns:1fr 1.2fr; gap:60px; max-width:1180px;}
+  .contact-info h2{font-size:32px; margin-bottom:18px; color:var(--ink);}
+  .contact-info p.lead{font-size:14.5px; line-height:1.75; color:var(--text-dim); margin-bottom:32px; max-width:380px;}
+  .info-row{display:flex; gap:14px; padding:16px 0; border-top:1px solid var(--line);}
+  .info-row:last-child{border-bottom:1px solid var(--line);}
+  .info-row .info-label{font-family:'IBM Plex Mono'; font-size:10.5px; letter-spacing:0.1em; color:var(--text-dim); width:100px; flex-shrink:0; padding-top:2px;}
+  .info-row .info-val{font-size:14px; color:var(--ink); font-weight:500;}
+
+  .contact-form{background:var(--paper-card); border:1px solid var(--line); padding:36px;}
+  .form-row{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;}
+  .field{display:flex; flex-direction:column; gap:8px;}
+  .field.full{grid-column:1/-1;}
+  .field label{font-family:'IBM Plex Mono'; font-size:10.5px; letter-spacing:0.08em; color:var(--text-dim); text-transform:uppercase;}
+  .field input, .field textarea{
+    border:1px solid var(--line); background:var(--paper); padding:12px 14px; font-family:'Inter'; font-size:13.5px;
+    color:var(--ink); border-radius:2px; resize:none;
+  }
+  .field input:focus, .field textarea:focus{outline:none; border-color:var(--blue);}
+  .contact-form .btn{width:100%; justify-content:center; margin-top:6px;}
+
+  /* ---------- FOOTER ---------- */
+  footer{background:var(--paper-dim); border-top:1px solid var(--line); padding:60px 64px 30px; text-align:center;}
+  footer .foot-brand{font-family:'Space Grotesk'; font-weight:700; font-size:18px; letter-spacing:0.04em; color:var(--ink); margin-bottom:20px;}
+  footer .foot-links{display:flex; justify-content:center; gap:26px; font-size:12.5px; color:var(--text-dim); margin-bottom:22px;}
+  footer .foot-links a:hover{color:var(--ink);}
+  footer .foot-copy{font-family:'IBM Plex Mono'; font-size:10.5px; color:#9B9FA9;}
+
+  /* ---------- RESPONSIVE ---------- */
+  @media (max-width: 980px){
+    .hero-visual{display:none;}
+    .hero-inner{max-width:100%;}
+    .gallery-grid{grid-template-columns:1fr;}
+    .g-card.large{grid-row:auto;}
+    .services-grid{grid-template-columns:1fr;}
+    .why-grid{grid-template-columns:1fr;}
+    .contact-grid{grid-template-columns:1fr; gap:40px;}
+    .form-row{grid-template-columns:1fr;}
+  }
+  @media (max-width: 760px){
+    .sidebar{position:fixed; left:0; top:0; width:230px; transform:translateX(-100%); transition:transform .3s ease; z-index:200;}
+    .sidebar.mobile-open{transform:translateX(0);}
+    .sidebar.collapsed{width:230px; padding:28px 22px;}
+    .sidebar.collapsed .brand-name, .sidebar.collapsed .side-label, .sidebar.collapsed .nav-text, .sidebar.collapsed .lang-row{display:flex; opacity:1;}
+    .sidebar.collapsed .brand-name{display:block;}
+    .mobile-bar{
+      display:flex; align-items:center; justify-content:space-between;
+      padding:18px 20px; background:var(--ink); color:#fff; position:sticky; top:0; z-index:150;
+    }
+    .mobile-bar .brand{gap:8px;}
+    .mobile-bar .brand-name{font-size:15px;}
+    .hamburger{background:none; border:1px solid rgba(255,255,255,0.2); color:#fff; width:34px; height:34px; border-radius:4px; display:flex; align-items:center; justify-content:center;}
+    .section{padding:64px 24px;}
+    .hero{padding:32px 24px 0;}
+    .hero h1{font-size:32px;}
+    .hero-bottom{flex-direction:column; align-items:flex-start; gap:18px;}
+    .overlay-scrim{display:none; position:fixed; inset:0; background:rgba(11,13,18,0.5); z-index:190;}
+    .overlay-scrim.show{display:block;}
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- SIDEBAR / NAVBAR (toggleable) -->
+  <aside class="sidebar" id="sidebar">
+    <div class="side-top">
+      <div class="brand">
+        <div class="brand-mark"></div>
+        <span class="brand-name">ARKARI</span>
+      </div>
+      <button class="toggle-btn" id="toggleBtn" aria-label="Ciutkan sidebar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+    </div>
+
+    <div class="side-label">Navigasi</div>
+    <ul class="nav-list">
+      <li><a href="#hero" class="active"><span class="nav-dot"></span><span class="nav-text">Beranda</span></a></li>
+      <li><a href="#karya"><span class="nav-dot"></span><span class="nav-text">Karya</span></a></li>
+      <li><a href="#layanan"><span class="nav-dot"></span><span class="nav-text">Layanan</span></a></li>
+      <li><a href="#kenapa"><span class="nav-dot"></span><span class="nav-text">Kenapa Kami</span></a></li>
+      <li><a href="#kontak"><span class="nav-dot"></span><span class="nav-text">Kontak</span></a></li>
+    </ul>
+
+    <div class="side-bottom">
+      <div class="lang-row"><span class="on">ID</span><span>EN</span></div>
+      <div class="social-row">
+        <a href="#" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="12" cy="12" r="3.2"/></svg></a>
+        <a href="#" aria-label="X"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 3h3l-7.5 8.6L22 21h-6.4l-5-6.5L4.8 21H2l8-9.2L2 3h6.6l4.5 6z"/></svg></a>
+        <a href="#" aria-label="Discord"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="12" r="1.4"/><circle cx="15" cy="12" r="1.4"/><path d="M7 5c3-1.3 7-1.3 10 0l1 4.5c.6 2.6.4 5.3-.5 7.5-1.6 1-3.3 1.6-5 2l-.7-1.5m-6.6-.5c-1.7-.4-3.4-1-5-2-.9-2.2-1.1-4.9-.5-7.5z"/></svg></a>
+      </div>
+    </div>
+  </aside>
+
+  <div class="overlay-scrim" id="scrim"></div>
+
+  <main>
+    <!-- mobile top bar -->
+    <div class="mobile-bar">
+      <div class="brand">
+        <div class="brand-mark"></div>
+        <span class="brand-name">ARKARI</span>
+      </div>
+      <button class="hamburger" id="hamburger" aria-label="Buka menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
+      </button>
+    </div>
+
+    <!-- HERO -->
+    <section class="hero" id="hero">
+      <div class="hero-visual">
+        <div class="shard-sky"></div>
+        <div class="shard-line"></div>
+        <div class="shard-crystal"></div>
+        <div class="shard-mountain"></div>
+        <div class="shard-diamond"></div>
+      </div>
+
+      <div class="hero-inner">
+        <div class="hero-eyebrow">Studio Game Independen — Jakarta</div>
+        <h1>Kami merancang dunia yang <em>ingin</em> terus kamu jelajahi.</h1>
+        <p class="lead">Arkari Studio membangun game, dunia, dan sistem interaktif untuk tim yang ingin karyanya diingat — dari konsep awal sampai rilis, dan seterusnya.</p>
+        <div class="hero-cta">
+          <a href="#karya" class="btn btn-primary">Lihat Karya Kami <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+          <a href="#kontak" class="btn btn-outline">Mulai Proyek</a>
+        </div>
+
+        <div class="hero-card">
+          <div class="tag">PROYEK UNGGULAN — 2026</div>
+          <h3>Nirmala</h3>
+          <p>Petualangan eksplorasi dunia terbuka bertema hutan-neon, dibangun di atas Mesin Aether v2. Sedang dalam early access dan telah menembus 200 ribu unduhan pekan pertama.</p>
+          <a href="#karya" class="btn btn-outline">Jelajahi Dunia <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+        </div>
+      </div>
+
+      <div class="hero-bottom">
+        <div class="scroll-hint"><span>GULIR</span><span class="dash"></span><span>UNTUK MELIHAT KARYA</span></div>
+        <div class="stat-mini">
+          <div><strong>12+</strong>Judul Dirilis</div>
+          <div><strong>10 Jt+</strong>Pemain Aktif</div>
+          <div><strong>2019</strong>Berdiri Sejak</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- GALLERY / PROJECTS -->
+    <section class="section gallery" id="karya">
+      <div class="sec-head">
+        <div>
+          <div class="eyebrow">Portofolio</div>
+          <h2>Karya Terbaru</h2>
+        </div>
+        <a href="#" class="view-all">Lihat Semua <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      </div>
+
+      <div class="gallery-grid">
+        <div class="g-card large g1">
+          <div class="g-bg"></div>
+          <div class="g-content">
+            <div class="g-tag">GAME · DIRILIS 2025</div>
+            <h4>Nirmala: Rimba Cahaya</h4>
+            <p>Eksplorasi dunia terbuka di hutan yang tumbuh mengikuti ritme pemain.</p>
+          </div>
+        </div>
+
+        <div class="g-card g2">
+          <div class="g-top">
+            <div class="g-tag">STUDIO KONSEP</div>
+            <div class="dot"></div>
+          </div>
+          <div class="g-content">
+            <h4>Ruang Konsep Seni</h4>
+            <p>Eksplorasi visual untuk fondasi dunia proyek mendatang.</p>
+          </div>
+        </div>
+
+        <div class="g-card g3">
+          <div class="g-bg"></div>
+          <div class="g-content">
+            <div class="g-tag">ENGINE · INTERNAL</div>
+            <h4>Mesin Aether v2</h4>
+            <p>Fondasi render dan fisika waktu-nyata milik studio.</p>
+          </div>
+        </div>
+
+        <div class="g-card g4">
+          <div class="big-stat">10 Jt+</div>
+          <div class="stat-label">PEMAIN DI SELURUH DUNIA</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SERVICES -->
+    <section class="section" id="layanan">
+      <div class="sec-head">
+        <div>
+          <div class="eyebrow">Layanan</div>
+          <h2>Yang Kami Kerjakan</h2>
+        </div>
+      </div>
+
+      <div class="services-grid">
+        <div class="service-card">
+          <div class="svc-tag">&lt;desain&gt;</div>
+          <h3>Desain Game</h3>
+          <p>Mekanik, sistem, dan narasi dirancang jadi satu — mulai dari prototipe kertas sampai loop inti yang teruji.</p>
+        </div>
+        <div class="service-card">
+          <div class="svc-tag">&lt;engine&gt;</div>
+          <h3>Pengembangan Engine</h3>
+          <p>Fondasi teknis kustom untuk render, fisika, dan jaringan, dibangun agar bisa tumbuh bersama proyek.</p>
+        </div>
+        <div class="service-card">
+          <div class="svc-tag">&lt;art&gt;</div>
+          <h3>Concept Art & Ilustrasi</h3>
+          <p>Bahasa visual dunia game kamu, dari mood board awal sampai aset produksi final.</p>
+        </div>
+        <div class="service-card">
+          <div class="svc-tag">&lt;audio&gt;</div>
+          <h3>Musik & Sound Design</h3>
+          <p>Skoring adaptif dan desain suara yang menyatu dengan ritme permainan.</p>
+        </div>
+        <div class="service-card">
+          <div class="svc-tag">&lt;rilis&gt;</div>
+          <h3>Publishing & Rilis</h3>
+          <p>Strategi peluncuran, QA, dan dukungan live-ops setelah game sampai ke pemain.</p>
+        </div>
+        <div class="service-card">
+          <div class="svc-tag">&lt;konsultasi&gt;</div>
+          <h3>Konsultasi Kreatif</h3>
+          <p>Tinjauan proyek dan arahan kreatif untuk tim yang butuh sudut pandang baru.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- WHY CHOOSE US -->
+    <section class="section why" id="kenapa">
+      <div class="sec-head">
+        <div>
+          <div class="eyebrow">Kenapa Arkari</div>
+          <h2>Alasan Studio Memilih Kami</h2>
+        </div>
+      </div>
+
+      <div class="why-grid">
+        <div class="why-card">
+          <div class="why-mark"><div class="m1"></div></div>
+          <h3>Tim Lintas Disiplin</h3>
+          <p>Desainer, engineer, dan seniman bekerja dalam satu ruang — bukan tim terpisah yang saling lempar berkas.</p>
+        </div>
+        <div class="why-card">
+          <div class="why-mark"><div class="m1"></div></div>
+          <h3>Proses yang Transparan</h3>
+          <p>Kamu melihat build, bukan sekadar laporan kemajuan. Setiap sprint bisa dicoba langsung.</p>
+        </div>
+        <div class="why-card">
+          <div class="why-mark"><div class="m1"></div></div>
+          <h3>Dukungan Purna Rilis</h3>
+          <p>Kami tetap tinggal setelah peluncuran — patch, live-ops, dan konten lanjutan.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONTACT -->
+    <section class="section" id="kontak">
+      <div class="contact-grid">
+        <div class="contact-info">
+          <div class="eyebrow">Kontak</div>
+          <h2>Punya Dunia yang Ingin Dibangun?</h2>
+          <p class="lead">Ceritakan proyekmu. Tim kami biasanya membalas dalam waktu dua hari kerja.</p>
+
+          <div class="info-row">
+            <div class="info-label">EMAIL</div>
+            <div class="info-val">halo@arkaristudio.com</div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">TELEPON</div>
+            <div class="info-val">+62 21 5050 1188</div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">STUDIO</div>
+            <div class="info-val">Jl. Kemang Raya No. 21, Jakarta Selatan</div>
+          </div>
+        </div>
+
+        <form class="contact-form" onsubmit="return false;">
+          <div class="form-row">
+            <div class="field">
+              <label for="nama">Nama</label>
+              <input id="nama" type="text" placeholder="Nama lengkap">
+            </div>
+            <div class="field">
+              <label for="email">Email</label>
+              <input id="email" type="email" placeholder="nama@email.com">
+            </div>
+          </div>
+          <div class="field full" style="margin-bottom:16px;">
+            <label for="topik">Topik</label>
+            <input id="topik" type="text" placeholder="Kerja sama proyek, kolaborasi, dll.">
+          </div>
+          <div class="field full" style="margin-bottom:16px;">
+            <label for="pesan">Pesan</label>
+            <textarea id="pesan" rows="4" placeholder="Ceritakan sedikit tentang proyekmu..."></textarea>
+          </div>
+          <button class="btn btn-primary">Kirim Pesan <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+        </form>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+      <div class="foot-brand">ARKARI STUDIO</div>
+      <div class="foot-links">
+        <a href="#">Legal</a>
+        <a href="#">Privasi</a>
+        <a href="#">Ketentuan</a>
+        <a href="#">Media Kit</a>
+      </div>
+      <div class="foot-copy">© 2026 ARKARI STUDIO. SELURUH HAK CIPTA DILINDUNGI.</div>
+    </footer>
+  </main>
+</div>
+
+<script>
+  const sidebar = document.getElementById('sidebar');
+  const toggleBtn = document.getElementById('toggleBtn');
+  const hamburger = document.getElementById('hamburger');
+  const scrim = document.getElementById('scrim');
+
+  toggleBtn.addEventListener('click', () => {
+    sidebar.classList.toggle('collapsed');
+  });
+
+  hamburger.addEventListener('click', () => {
+    sidebar.classList.add('mobile-open');
+    scrim.classList.add('show');
+  });
+  scrim.addEventListener('click', () => {
+    sidebar.classList.remove('mobile-open');
+    scrim.classList.remove('show');
+  });
+
+  // active link on scroll
+  const links = document.querySelectorAll('.nav-list a');
+  const sections = [...links].map(l => document.querySelector(l.getAttribute('href')));
+  window.addEventListener('scroll', () => {
+    let idx = 0;
+    sections.forEach((sec, i) => {
+      if (sec && sec.getBoundingClientRect().top <= 140) idx = i;
+    });
+    links.forEach(l => l.classList.remove('active'));
+    links[idx].classList.add('active');
+  });
+
+  // close mobile menu on nav click
+  links.forEach(l => l.addEventListener('click', () => {
+    sidebar.classList.remove('mobile-open');
+    scrim.classList.remove('show');
+  }));
+</script>
+
+</body>
+</html>
